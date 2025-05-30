@@ -1,5 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
-const { generateTemplate } = require('../services/openaiService');
+const { generateTemplate } = require('../services/openaiService.cjs');
 const prisma = new PrismaClient();
 
 // Create a new template

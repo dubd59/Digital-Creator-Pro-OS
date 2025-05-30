@@ -103,13 +103,14 @@ export const AdCampaignsSection: React.FC = () => {
 
   const totalSpent = campaigns.reduce((sum, campaign) => sum + campaign.spent, 0);
   const totalReach = campaigns.reduce((sum, campaign) => sum + campaign.reach, 0);
-  const averageEngagement = campaigns.reduce((sum, campaign) => sum + campaign.engagement, 0) / campaigns.length;
+  const averageEngagement = campaigns.length > 0
+    ? campaigns.reduce((sum, campaign) => sum + campaign.engagement, 0) / campaigns.length
+    : 0;
 
   const handleCreateCampaign = () => {
     setIsSubmitting(true);
-    
     setTimeout(() => {
-      const newId = Math.max(...campaigns.map(c => c.id)) + 1;
+      const newId = campaigns.length > 0 ? Math.max(...campaigns.map(c => c.id)) + 1 : 1;
       const campaign: Campaign = {
         id: newId,
         title: newCampaign.title,
@@ -448,7 +449,7 @@ export const AdCampaignsSection: React.FC = () => {
               variant="primary"
               onClick={handleCreateCampaign}
               disabled={isSubmitting || !newCampaign.title || !newCampaign.description || newCampaign.budget <= 0}
-              icon={isSubmitting ? <Loader2 className="animate-spin\" size={16} /> : undefined}
+              icon={isSubmitting ? <Loader2 className="animate-spin" size={16} /> : undefined}
             >
               {isSubmitting ? 'Creating...' : 'Create Campaign'}
             </Button>
@@ -470,78 +471,18 @@ export const AdCampaignsSection: React.FC = () => {
           </div>
 
           {selectedCampaign && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Campaign Title</label>
-                <input
-                  type="text"
-                  className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  defaultValue={selectedCampaign.title}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea
-                  className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  rows={3}
-                  defaultValue={selectedCampaign.description}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Budget</label>
-                <input
-                  type="number"
-                  className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  defaultValue={selectedCampaign.budget}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select
-                  className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  defaultValue={selectedCampaign.status}
-                >
-                  <option value="active">Active</option>
-                  <option value="paused">Paused</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                    defaultValue={selectedCampaign.startDate}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">End Date</label>
-                  <input
-                    type="date"
-                    className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                    defaultValue={selectedCampaign.endDate}
-                  />
-                </div>
-              </div>
-            </div>
+            <EditCampaignForm
+              campaign={selectedCampaign}
+              onCancel={() => setIsEditModalOpen(false)}
+              onSave={updated => {
+                setCampaigns(campaigns.map(c =>
+                  c.id === updated.id ? updated : c
+                ));
+                setIsEditModalOpen(false);
+                setSelectedCampaign(null);
+              }}
+            />
           )}
-
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button 
-              variant="outline"
-              onClick={() => setIsEditModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="primary">
-              Save Changes
-            </Button>
-          </div>
         </div>
       </Modal>
 
@@ -655,3 +596,100 @@ export const AdCampaignsSection: React.FC = () => {
     </div>
   );
 };
+
+// Place this at the bottom of your file (outside AdCampaignsSection)
+function EditCampaignForm({
+  campaign,
+  onCancel,
+  onSave
+}: {
+  campaign: Campaign;
+  onCancel: () => void;
+  onSave: (updated: Campaign) => void;
+}) {
+  const [form, setForm] = useState({ ...campaign });
+
+  return (
+    <form
+      className="space-y-4"
+      onSubmit={e => {
+        e.preventDefault();
+        onSave(form);
+      }}
+    >
+      <div>
+        <label className="block text-sm font-medium mb-1">Campaign Title</label>
+        <input
+          type="text"
+          className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
+          value={form.title}
+          onChange={e => setForm({ ...form, title: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Description</label>
+        <textarea
+          className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
+          rows={3}
+          value={form.description}
+          onChange={e => setForm({ ...form, description: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Budget</label>
+        <input
+          type="number"
+          className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
+          value={form.budget}
+          onChange={e => setForm({ ...form, budget: Number(e.target.value) })}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Status</label>
+        <select
+          className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
+          value={form.status}
+          onChange={e => setForm({ ...form, status: e.target.value as Campaign['status'] })}
+        >
+          <option value="active">Active</option>
+          <option value="paused">Paused</option>
+          <option value="completed">Completed</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Start Date</label>
+          <input
+            type="date"
+            className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
+            value={form.startDate}
+            onChange={e => setForm({ ...form, startDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">End Date</label>
+          <input
+            type="date"
+            className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
+            value={form.endDate}
+            onChange={e => setForm({ ...form, endDate: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-2 mt-6">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button variant="primary" type="submit">
+          Save Changes
+        </Button>
+      </div>
+    </form>
+  );
+}

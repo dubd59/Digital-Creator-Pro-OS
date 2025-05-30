@@ -15,7 +15,8 @@ import {
   ChevronRight,
   CheckCircle,
   Clock,
-  PlusCircle
+  PlusCircle,
+  Heading1
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -101,8 +102,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onSectionChange })
       {/* Welcome section */}
       <section className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl p-6 text-white">
         <div className="max-w-3xl">
-          <h1 className="text-2xl font-bold mb-2">Welcome back, Creator!</h1>
-          <p className="opacity-90 mb-4">Here's an overview of your creator business and tools.</p>
+         <h1 className="text-4xl font-extrabold mb-4">Overview of your creator business and tools</h1>
           <Button 
             variant="outline" 
             className="bg-white/20 hover:bg-white/30 border-white/40 text-white"

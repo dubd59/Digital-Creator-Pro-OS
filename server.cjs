@@ -1,4 +1,6 @@
-const app = require('./src/app');
+require('dotenv').config(); // <-- This loads your .env file
+
+const app = require('./src/app.cjs');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 

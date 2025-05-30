@@ -77,65 +77,67 @@ export default function NotionTemplateGenerator() {
   });
 
   const generateNotionTableMarkdown = (template: any) => {
-    let markdown = '';
+  let markdown = '';
 
-    // Add header section
-    markdown += '# ' + config.purpose.split('\n')[0] + '\n\n';
-    markdown += config.purpose + '\n\n';
+  // Add header section
+  markdown += '# ' + (config.purpose?.split('\n')[0] || 'Notion Template') + '\n\n';
+  markdown += (config.purpose || '') + '\n\n';
 
-    // Structure section
-    markdown += '## Structure\n\n';
-    markdown += '| Section | Content |\n';
-    markdown += '|---------|----------|\n';
-    template.structure.forEach((section: any) => {
-      markdown += `| ${section.section} | ${section.content.join(', ')} |\n`;
-    });
-    markdown += '\n';
+  // Structure section
+  markdown += '## Structure\n\n';
+  markdown += '| Section | Content |\n';
+  markdown += '|---------|----------|\n';
+  (template.structure || []).forEach((section: any) => {
+    markdown += `| ${section.section} | ${(section.content || []).join(', ')} |\n`;
+  });
+  markdown += '\n';
 
-    // Databases section
-    markdown += '## Databases\n\n';
-    markdown += '| Database | Type | Views | Properties |\n';
-    markdown += '|-----------|------|--------|------------|\n';
-    template.databases.forEach((db: any) => {
-      markdown += `| ${db.name} | ${db.type} | ${db.views.join(', ')} | ${db.properties.map((p: any) => p.name + ' (' + p.type + ')').join(', ')} |\n`;
-    });
-    markdown += '\n';
+  // Databases section
+  markdown += '## Databases\n\n';
+  markdown += '| Database | Type | Views | Properties |\n';
+  markdown += '|-----------|------|--------|------------|\n';
+  (template.databases || []).forEach((db: any) => {
+    markdown += `| ${db.name || ''} | ${db.type || ''} | ${(db.views || []).join(', ')} | ${(db.properties || []).map((p: any) => (p.name || '') + ' (' + (p.type || '') + ')').join(', ')} |\n`;
+  });
+  markdown += '\n';
 
-    // Widgets section
-    markdown += '## Widgets\n\n';
-    markdown += '| Type | Purpose | Placement | Implementation |\n';
-    markdown += '|------|---------|-----------|----------------|\n';
-    template.widgets.forEach((widget: any) => {
-      markdown += `| ${widget.type} | ${widget.purpose} | ${widget.placement} | ${widget.implementation.split('\n').join('; ')} |\n`;
-    });
-    markdown += '\n';
+  // Widgets section
+  markdown += '## Widgets\n\n';
+  markdown += '| Type | Purpose | Placement | Implementation |\n';
+  markdown += '|------|---------|-----------|----------------|\n';
+  (template.widgets || []).forEach((widget: any) => {
+    markdown += `| ${widget.type || ''} | ${widget.purpose || ''} | ${widget.placement || ''} | ${(widget.implementation || '').split('\n').join('; ')} |\n`;
+  });
+  markdown += '\n';
 
-    // Automations section
-    markdown += '## Automations\n\n';
-    markdown += '| Trigger | Action | Description | Implementation |\n';
-    markdown += '|---------|--------|-------------|----------------|\n';
-    template.automations.forEach((automation: any) => {
-      markdown += `| ${automation.trigger} | ${automation.action} | ${automation.description} | ${automation.implementation.split('\n').join('; ')} |\n`;
-    });
-    markdown += '\n';
+  // Automations section
+  markdown += '## Automations\n\n';
+  markdown += '| Trigger | Action | Description | Implementation |\n';
+  markdown += '|---------|--------|-------------|----------------|\n';
+  (template.automations || []).forEach((automation: any) => {
+    markdown += `| ${automation.trigger || ''} | ${automation.action || ''} | ${automation.description || ''} | ${(automation.implementation || '').split('\n').join('; ')} |\n`;
+  });
+  markdown += '\n';
 
-    // Embeds section
-    markdown += '## Embeds\n\n';
-    markdown += '| Type | Purpose | Setup |\n';
-    markdown += '|------|---------|-------|\n';
-    template.embeds.forEach((embed: any) => {
-      markdown += `| ${embed.type} | ${embed.purpose} | ${embed.setup.join('; ')} |\n`;
-    });
-    markdown += '\n';
+  // Embeds section
+  markdown += '## Embeds\n\n';
+  markdown += '| Type | Purpose | Setup |\n';
+  markdown += '|------|---------|-------|\n';
+  (template.embeds || []).forEach((embed: any) => {
+    markdown += `| ${embed.type || ''} | ${embed.purpose || ''} | ${(embed.setup || []).join('; ')} |\n`;
+  });
+  markdown += '\n';
 
-    // API Integration section
-    markdown += '## API Integration\n\n';
-    markdown += '| Endpoint | Method | Permissions | Rate Limit |\n';
-    markdown += '|----------|--------|-------------|------------|\n';
-    markdown += `| ${template.apiIntegration.endpoint} | ${template.apiIntegration.method} | ${template.apiIntegration.permissions.join(', ')} | ${template.apiIntegration.rateLimit} |\n`;
+  // API Integration section
+  markdown += '## API Integration\n\n';
+  markdown += '| Endpoint | Method | Permissions | Rate Limit |\n';
+  markdown += '|----------|--------|-------------|------------|\n';
+  if (template.apiIntegration) {
+    markdown += `| ${template.apiIntegration.endpoint || ''} | ${template.apiIntegration.method || ''} | ${(template.apiIntegration.permissions || []).join(', ')} | ${template.apiIntegration.rateLimit || ''} |\n`;
+  }
 
-    return markdown;
-  };
+  return markdown;
+};
 
   const handleGenerateTemplate = async () => {
     if (!config.purpose.trim()) {
@@ -147,15 +149,16 @@ export default function NotionTemplateGenerator() {
     setError(null);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-template`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(config)
-      });
-
+     const response = await fetch('http://localhost:3000/api/openai/generate-template', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    ...config,
+    prompt: `Create a Notion template for: ${config.purpose} (Audience: ${config.audience}, Layout: ${config.layout})`
+  })
+});
       if (!response.ok) {
         throw new Error('Failed to generate template');
       }

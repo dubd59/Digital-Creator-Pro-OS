@@ -5,9 +5,10 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const templateRoutes = require('./routes/template');
-const webhookRoutes = require('./routes/webhook');
+const authRoutes = require('./routes/auth.cjs');
+const templateRoutes = require('./routes/template.cjs');
+const webhookRoutes = require('./routes/webhook.cjs');
+const openaiRoutes = require('./api/openai.cjs'); // <-- Import your OpenAI route
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(cors({
 app.use('/api/auth', authRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/openai', openaiRoutes); // <-- Add this line
 
 // Test route
 app.get('/api/health', (req, res) => {

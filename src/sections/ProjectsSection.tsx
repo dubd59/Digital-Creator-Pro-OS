@@ -61,6 +61,7 @@ export const ProjectsSection: React.FC = () => {
     dueDate: new Date().toISOString().split('T')[0],
     status: 'planning' as const
   });
+  const [editProject, setEditProject] = useState<Project | null>(null);
 
   const [projects, setProjects] = useState<Project[]>([
     {
@@ -118,7 +119,6 @@ export const ProjectsSection: React.FC = () => {
 
   const handleCreateProject = () => {
     setIsSubmitting(true);
-    
     setTimeout(() => {
       const newId = Math.max(...projects.map(p => p.id)) + 1;
       const project: Project = {
@@ -152,6 +152,14 @@ export const ProjectsSection: React.FC = () => {
       setIsDeleteModalOpen(false);
       setSelectedProject(null);
     }
+  };
+
+  const handleSaveEditProject = () => {
+    if (!editProject) return;
+    setProjects(projects.map(p => p.id === editProject.id ? editProject : p));
+    setIsEditModalOpen(false);
+    setSelectedProject(null);
+    setEditProject(null);
   };
 
   const handleSendInvites = async () => {
@@ -329,6 +337,7 @@ export const ProjectsSection: React.FC = () => {
                     icon={<Edit size={16} />}
                     onClick={() => {
                       setSelectedProject(project);
+                      setEditProject(project);
                       setIsEditModalOpen(true);
                     }}
                   >
@@ -441,7 +450,7 @@ export const ProjectsSection: React.FC = () => {
               variant="primary"
               onClick={handleCreateProject}
               disabled={isSubmitting || !newProject.title || !newProject.description}
-              icon={isSubmitting ? <Loader2 className="animate-spin\" size={16} /> : undefined}
+              icon={isSubmitting ? <Loader2 className="animate-spin" size={16} /> : undefined}
             >
               {isSubmitting ? 'Creating...' : 'Create Project'}
             </Button>
@@ -462,14 +471,15 @@ export const ProjectsSection: React.FC = () => {
             </button>
           </div>
 
-          {selectedProject && (
+          {editProject && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Project Title</label>
                 <input
                   type="text"
                   className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  defaultValue={selectedProject.title}
+                  value={editProject.title}
+                  onChange={e => setEditProject({ ...editProject, title: e.target.value })}
                 />
               </div>
 
@@ -478,7 +488,8 @@ export const ProjectsSection: React.FC = () => {
                 <textarea
                   className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
                   rows={3}
-                  defaultValue={selectedProject.description}
+                  value={editProject.description}
+                  onChange={e => setEditProject({ ...editProject, description: e.target.value })}
                 />
               </div>
 
@@ -487,7 +498,8 @@ export const ProjectsSection: React.FC = () => {
                 <input
                   type="date"
                   className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  defaultValue={selectedProject.dueDate}
+                  value={editProject.dueDate}
+                  onChange={e => setEditProject({ ...editProject, dueDate: e.target.value })}
                 />
               </div>
 
@@ -495,7 +507,8 @@ export const ProjectsSection: React.FC = () => {
                 <label className="block text-sm font-medium mb-1">Status</label>
                 <select
                   className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  defaultValue={selectedProject.status}
+                  value={editProject.status}
+                  onChange={e => setEditProject({ ...editProject, status: e.target.value as 'planning' | 'active' | 'completed' })}
                 >
                   <option value="planning">Planning</option>
                   <option value="active">Active</option>
@@ -508,9 +521,10 @@ export const ProjectsSection: React.FC = () => {
                 <input
                   type="number"
                   className="w-full p-2 rounded-lg border border-neutral-200 dark:border-neutral-700"
-                  defaultValue={selectedProject.progress}
+                  value={editProject.progress}
                   min="0"
                   max="100"
+                  onChange={e => setEditProject({ ...editProject, progress: Number(e.target.value) })}
                 />
               </div>
             </div>
@@ -523,7 +537,7 @@ export const ProjectsSection: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button variant="primary">
+            <Button variant="primary" onClick={handleSaveEditProject}>
               Save Changes
             </Button>
           </div>
@@ -636,7 +650,7 @@ export const ProjectsSection: React.FC = () => {
               <Button 
                 variant="primary" 
                 fullWidth 
-                icon={isSubmitting ? <Loader2 className="animate-spin\" size={14} /> : <Share2 size={14} />}
+                icon={isSubmitting ? <Loader2 className="animate-spin" size={14} /> : <Share2 size={14} />}
                 onClick={handleSendInvites}
                 disabled={isSubmitting || !inviteEmails.trim()}
               >

@@ -7,9 +7,9 @@ const {
   updateTemplate, 
   deleteTemplate,
   generateTemplateWithAI
-} = require('../controllers/templateController');
-const { authenticateToken } = require('../middleware/auth');
-const { checkActiveSubscription } = require('../middleware/subscription');
+} = require('../controllers/templateController.cjs');
+const { authenticateToken } = require('../middleware/auth.cjs');
+const { checkActiveSubscription } = require('../middleware/subscription.cjs');
 
 // All routes require authentication
 router.use(authenticateToken);
